@@ -1,0 +1,144 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "newVMName": {
+      "type": "string",
+      "defaultValue": "man-buildagnt-1"
+    },
+    "labName": {
+      "type": "string",
+      "defaultValue": "TheAzureGuy-DevTestLab"
+    },
+    "size": {
+      "type": "string",
+      "defaultValue": "Standard_DS1"
+    },
+    "userName": {
+      "type": "string",
+      "defaultValue": "welcome123"
+    },
+    "password": {
+      "type": "securestring"
+    },
+    "VSTS_Build_Agent.vstsAccount": {
+      "type": "string",
+      "defaultValue": "theaureguy-cicd"
+    },
+    "VSTS_Build_Agent.vstsPassword": {
+      "type": "securestring"
+    },
+    "VSTS_Build_Agent.agentName": {
+      "type": "string",
+      "defaultValue": "man-buildagnt-1"
+    },
+    "VSTS_Build_Agent.poolName": {
+      "type": "string",
+      "defaultValue": "azure-buildagent-pool"
+    },
+    "VSTS_Build_Agent.windowsLogonAccount": {
+      "type": "string",
+      "defaultValue": "NT AUTHORITY\\NetworkService"
+    },
+    "VSTS_Build_Agent.windowsLogonPassword": {
+      "type": "securestring"
+    },
+    "VSTS_Build_Agent.driveLetter": {
+      "type": "string",
+      "defaultValue": "C"
+    },
+    "VSTS_Build_Agent.workDirectory": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+    "labSubnetName": "[concat(variables('labVirtualNetworkName'), 'Subnet')]",
+    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
+    "labVirtualNetworkName": "[concat('Dtl', parameters('labName'))]",
+    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
+    "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-04-26-preview",
+      "type": "Microsoft.DevTestLab/labs/virtualmachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+        "notes": "Visual Studio Community 2017 on Windows Server 2016 (x64)",
+        "galleryImageReference": {
+          "offer": "VisualStudio",
+          "publisher": "MicrosoftVisualStudio",
+          "sku": "VS-2017-Comm-WS2016",
+          "osType": "Windows",
+          "version": "latest"
+        },
+        "size": "[parameters('size')]",
+        "userName": "[parameters('userName')]",
+        "password": "[parameters('password')]",
+        "isAuthenticationWithSshKey": false,
+        "artifacts": [
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-vsts-build-agent')]",
+            "parameters": [
+              {
+                "name": "vstsAccount",
+                "value": "[parameters('VSTS_Build_Agent.vstsAccount')]"
+              },
+              {
+                "name": "vstsPassword",
+                "value": "[parameters('VSTS_Build_Agent.vstsPassword')]"
+              },
+              {
+                "name": "agentName",
+                "value": "[parameters('VSTS_Build_Agent.agentName')]"
+              },
+              {
+                "name": "poolName",
+                "value": "[parameters('VSTS_Build_Agent.poolName')]"
+              },
+              {
+                "name": "windowsLogonAccount",
+                "value": "[parameters('VSTS_Build_Agent.windowsLogonAccount')]"
+              },
+              {
+                "name": "windowsLogonPassword",
+                "value": "[parameters('VSTS_Build_Agent.windowsLogonPassword')]"
+              },
+              {
+                "name": "driveLetter",
+                "value": "[parameters('VSTS_Build_Agent.driveLetter')]"
+              },
+              {
+                "name": "workDirectory",
+                "value": "[parameters('VSTS_Build_Agent.workDirectory')]"
+              }
+            ]
+          }
+        ],
+        "labSubnetName": "[variables('labSubnetName')]",
+        "disallowPublicIpAddress": true,
+        "storageType": "Standard",
+        "allowClaim": false,
+        "networkInterface": {
+          "sharedPublicIpAddressConfiguration": {
+            "inboundNatRules": [
+              {
+                "transportProtocol": "tcp",
+                "backendPort": 3389
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "labVMId": {
+      "type": "string",
+      "value": "[variables('vmId')]"
+    }
+  }
+}
