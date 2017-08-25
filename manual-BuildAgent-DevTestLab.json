@@ -34,7 +34,7 @@
     },
     "VSTS_Build_Agent.poolName": {
       "type": "string",
-      "defaultValue": "azure-buildagent-pool"
+      "defaultValue": "Azure-buildagent-pool"
     },
     "VSTS_Build_Agent.windowsLogonAccount": {
       "type": "string",
@@ -67,11 +67,11 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "Visual Studio Community 2017 on Windows Server 2016 (x64)",
+        "notes": "Visual Studio Enterprise 2017 on Windows Server 2016 (x64)",
         "galleryImageReference": {
           "offer": "VisualStudio",
           "publisher": "MicrosoftVisualStudio",
-          "sku": "VS-2017-Comm-WS2016",
+          "sku": "VS-2017-Ent-WS2016",
           "osType": "Windows",
           "version": "latest"
         },
